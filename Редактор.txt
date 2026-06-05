@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Помощь и адаптация белорусов в Варшаве — Проводник по интерфейсам</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Unbounded:wght@400;700&family=Inter:wght@400;500;600&display=swap');
+
+        :root {
+            --bg: #0f0f0f;
+            --surface: #1a1a1a;
+            --border: #2a2a2a;
+            --accent: #c8ff00; /* Неоново-лаймовый */
+            --accent2: #ff6b35; /* Оранжевый */
+            --text: #f0f0f0;
+            --muted: #888;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            font-size: 15px;
+            line-height: 1.6;
+            padding: 0;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 750px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        header {
+            padding: 100px 0 60px;
+            text-align: left;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h1 {
+            font-family: 'Unbounded', sans-serif;
+            font-size: clamp(24px, 5vw, 36px);
+            line-height: 1.3;
+            color: var(--accent);
+            margin-bottom: 20px;
+            letter-spacing: -0.5px;
+        }
+
+        .subtitle {
+            font-size: 1.15rem;
+            color: #ccc;
+            margin-bottom: 36px;
+            max-width: 600px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--accent);
+            color: #000;
+            text-decoration: none;
+            padding: 16px 32px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1rem;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.2s ease;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(200, 255, 0, 0.1);
+        }
+
+        @media(min-width: 480px) {
+            .btn { width: auto; }
+        }
+
+        .btn:hover {
+            background-color: #b1df00;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(200, 255, 0, 0.2);
+        }
+
+        .btn-secondary {
+            background-color: transparent;
+            color: var(--text);
+            border: 1px solid var(--border);
+            box-shadow: none;
+        }
+        .btn-secondary:hover {
+            background-color: var(--surface);
+            border-color: var(--muted);
+            transform: translateY(-2px);
+        }
+
+        section {
+            margin-bottom: 64px;
+        }
+
+        .section-title {
+            font-family: 'Unbounded', sans-serif;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--accent);
+            border-left: 3px solid var(--accent);
+            padding-left: 12px;
+            margin-bottom: 28px;
+        }
+
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 28px;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            border-color: #444;
+            transform: translateY(-2px);
+        }
+
+        .about-text p {
+            margin-bottom: 16px;
+            color: #ccc;
+            font-size: 1rem;
+        }
+
+        .about-text p strong {
+            color: var(--accent);
+        }
+
+        .tariff-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 24px;
+        }
+
+        .tariff-card {
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            background: var(--surface);
+            padding: 28px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: all 0.3s ease;
+        }
+
+        .tariff-card:hover {
+            transform: translateY(-4px);
+        }
+
+        .tariff-card.featured {
+            border-color: var(--accent);
+            background: rgba(200, 255, 0, 0.02);
+            box-shadow: 0 8px 30px rgba(200, 255, 0, 0.03);
+        }
+
+        .tariff-header {
+            margin-bottom: 16px;
+        }
+
+        .tariff-title {
+            font-family: 'Unbounded', sans-serif;
+            font-size: 15px;
+            color: var(--text);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .tariff-title span {
+            font-family: 'Inter', sans-serif;
+            font-size: 11px;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-weight: 500;
+        }
+        .tag-onsite { background: #3a1a1a; color: #ff8060; }
+        .tag-remote { background: #1a3a1a; color: #6fdf6f; }
+
+        .tariff-price {
+            font-family: 'Unbounded', sans-serif;
+            font-size: 1.8rem;
+            color: var(--accent);
+            margin-bottom: 12px;
+        }
+
+        .tariff-desc {
+            font-size: 0.95rem;
+            color: #aaa;
+            margin-bottom: 16px;
+        }
+
+        /* Кнопка раскрытия списка */
+        .toggle-details-btn {
+            background: none;
+            border: none;
+            color: var(--accent2);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 16px;
+            padding: 4px 0;
+        }
+
+        .toggle-details-btn::after {
+            content: "▼";
+            font-size: 0.7rem;
+            transition: transform 0.2s ease;
+        }
+
+        .tariff-card.active .toggle-details-btn::after {
+            transform: rotate(180deg);
+        }
+
+        /* Выпадающий список */
+        .tariff-details {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+
+        .tariff-card.active .tariff-details {
+            max-height: 200px; /* Достаточно для плавного раскрытия */
+        }
+
+        .tariff-list {
+            list-style: none;
+            padding-bottom: 16px;
+        }
+
+        .tariff-list li {
+            font-size: 0.9rem;
+            color: #ccc;
+            padding: 6px 0;
+            display: flex;
+            align-items: flex-start;
+        }
+        .tariff-list li::before {
+            content: "—";
+            color: var(--accent);
+            margin-right: 10px;
+        }
+
+        /* Интерактивный блок "Что мы настроим" */
+        .services-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 16px;
+        }
+
+        @media(min-width: 550px) {
+            .services-grid { grid-template-columns: 1fr 1fr; }
+        }
+
+        .service-accordion {
+            background: #222;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .service-accordion:hover {
+            border-color: var(--accent2);
+            background: #262626;
+        }
+
+        .service-accordion h4 {
+            font-family: 'Unbounded', sans-serif;
+            font-size: 12px;
+            color: var(--text);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .service-accordion h4::after {
+            content: "+";
+            color: var(--accent2);
+            font-size: 1.1rem;
+            transition: transform 0.2s;
+        }
+
+        .service-accordion.open h4::after {
+            transform: rotate(45deg);
+            color: var(--accent);
+        }
+
+        .service-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.25s ease-out;
+            font-size: 0.85rem;
+            color: #aaa;
+            margin-top: 0;
+        }
+
+        .service-accordion.open .service-content {
+            max-height: 120px;
+            margin-top: 10px;
+        }
+
+        .steps-list {
+            list-style: none;
+        }
+
+        .step-item {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .step-item:last-child { margin-bottom: 0; }
+
+        .step-num {
+            font-family: 'Unbounded', sans-serif;
+            background: var(--border);
+            color: var(--accent);
+            font-size: 11px;
+            min-width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 2px;
+        }
+
+        .step-text h4 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        .step-text p {
+            font-size: 0.9rem;
+            color: var(--muted);
+        }
+
+        .note {
+            font-size: 13px;
+            color: #ccc;
+            padding: 20px;
+            background: #111;
+            border-radius: 8px;
+            border-left: 3px solid var(--accent2);
+        }
+
+        footer {
+            text-align: center;
+            padding: 80px 0 100px;
+            border-top: 1px solid var(--border);
+        }
+
+        footer p {
+            font-size: 0.95rem;
+            color: var(--muted);
+            margin-bottom: 28px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+
+        <!-- Блок 1 — Шапка -->
+        <header>
+            <h1>Помогаю белорусам в Варшаве разобраться с польскими госсервисами — быстро, без ошибок и очередей</h1>
+            <p class="subtitle">PESEL, ВНЖ, банк, ZUS, налоги — техническое сопровождение и бытовая адаптация без лишнего стресса.</p>
+            <a href="https://t.me/ВАШ_НИК" class="btn" target="_blank">Написать в Телеграм</a>
+        </header>
+
+        <!-- Блок 2 — Кто я -->
+        <section>
+            <div class="section-title">Кто я</div>
+            <div class="card about-text">
+                <p>Живу в Варшаве (район <strong>Ursus</strong>), работаю по сменному графику. Я сам прошёл весь этот путь с нуля: самостоятельно оформил два ВНЖ (в Гданьске и Варшаве), прошёл легализацию ребёнка, работал через агентство труда и изучил польскую цифровую систему изнутри.</p>
+                <p>Мой сервис — это не классическая юридическая контора с раздутыми ценами. Я ваш <strong>индивидуальный проводник по интерфейсам</strong>. Помогаю обойти скрытые технические сбои и человеческие ошибки, на которых спотыкаются 90% новоприбывших.</p>
+            </div>
+        </section>
+
+        <!-- Блок 3 — Три тарифа (Интерактивные списки) -->
+        <section>
+            <div class="section-title">Тарифы</div>
+            <div class="tariff-grid">
+
+                <div class="tariff-card">
+                    <div class="tariff-header">
+                        <div class="tariff-title">Советник <span class="tag-remote">Удалённо</span></div>
+                        <div class="tariff-price">60 PLN</div>
+                        <div class="tariff-desc">Вы делаете всё сами, но под моим экспертным контролем. Минимизируем риски ошибок.</div>
+                    </div>
+                    <button class="toggle-details-btn" onclick="toggleTariff(this)">Что входит в стоимость?</button>
+                    <div class="tariff-details">
+                        <ul class="tariff-list">
+                            <li>Разбор вашей ситуации на детальном созвоне</li>
+                            <li>Пошаговый личный чек-лист действий под ваш случай</li>
+                            <li>Полная проверка ваших анкет и документов перед отправкой</li>
+                        </ul>
+                    </div>
+                    <a href="https://t.me/ВАШ_НИК?text=Привет!%20Интересует%20тариф%20Советник" class="btn btn-secondary" target="_blank">Выбрать тариф</a>
+                </div>
+
+                <div class="tariff-card featured">
+                    <div class="tariff-header">
+                        <div class="tariff-title">Рядом <span class="tag-onsite">Личный выезд</span></div>
+                        <div class="tariff-price">220 PLN <span style="font-size:12px; font-weight:normal; color:var(--muted);">+ транспорт</span></div>
+                        <div class="tariff-desc">Физическое сопровождение. Еду с вами лично в ведомства Варшавы, говорю за вас на польском.</div>
+                    </div>
+                    <button class="toggle-details-btn" onclick="toggleTariff(this)">Что входит в стоимость?</button>
+                    <div class="tariff-details">
+                        <ul class="tariff-list">
+                            <li>Оформление номеров PESEL и сопровождение в УСЦ (Urząd Stanu Cywilnego)</li>
+                            <li>Личное открытие счетов в надежных банках</li>
+                            <li>Языковая поддержка на месте «за руку» во избежание стресса</li>
+                        </ul>
+                    </div>
+                    <a href="https://t.me/ВАШ_НИК?text=Привет!%20Мне%20нужен%20тариф%20Рядом" class="btn" target="_blank">Выбрать тариф</a>
+                </div>
+
+                <div class="tariff-card">
+                    <div class="tariff-header">
+                        <div class="tariff-title">Удалёнка <span class="tag-remote">Без визитов</span></div>
+                        <div class="tariff-price">100 PLN</div>
+                        <div class="tariff-desc">Вы предоставляете технический доступ — я полностью заполняю и настраиваю всё за вас.</div>
+                    </div>
+                    <button class="toggle-details-btn" onclick="toggleTariff(this)">Что входит в стоимость?</button>
+                    <div class="tariff-details">
+                        <ul class="tariff-list">
+                            <li>Создание и настройка Profil Zaufany удалённо</li>
+                            <li>Заполнение сложных электронных анкет в системах InPol и MOS 2.0</li>
+                            <li>Конфигурация необходимых цифровых профилей и госсервисов</li>
+                        </ul>
+                    </div>
+                    <a href="https://t.me/ВАШ_НИК?text=Привет!%20Интересует%20тариф%20Удаленка" class="btn btn-secondary" target="_blank">Выбрать тариф</a>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Блок 4 — Что помогаю оформить (Интерактивный аккордеон) -->
+        <section>
+            <div class="section-title">Что мы настроим (нажмите для деталей)</div>
+            <div class="services-grid">
+
+                <div class="service-accordion" onclick="toggleService(this)">
+                    <h4>PESEL & Profil Zaufany</h4>
+                    <div class="service-content">
+                        Оформление идентификатора, активация цифровой подписи через банк, настройка e-Doręczenia для писем от госорганов.
+                    </div>
+                </div>
+
+                <div class="service-accordion" onclick="toggleService(this)">
+                    <h4>Банки & система BLIK</h4>
+                    <div class="service-content">
+                        Подбор банка (PKO, mBank, ING), состыковка баз данных реестра PESEL и банка, тонкая настройка безопасных лимитов переводов.
+                    </div>
+                </div>
+
+                <div class="service-accordion" onclick="toggleService(this)">
+                    <h4>Карта побыта (ВНЖ)</h4>
+                    <div class="service-content">
+                        Создание личных кабинетов в InPol / MOS 2.0, безошибочная проверка анкет и контроль подачи налоговой истории (PIT-37).
+                    </div>
+                </div>
+
+                <div class="service-accordion" onclick="toggleService(this)">
+                    <h4>ZUS & Налоги</h4>
+                    <div class="service-content">
+                        Активация платформы PUE ZUS, правильное оформление деклараций PIT-2 для увеличения выплат на руки, подготовка к сдаче PIT-37.
+                    </div>
+                </div>
+
+                <div class="service-accordion" onclick="toggleService(this)">
+                    <h4>IKP & Медицина</h4>
+                    <div class="service-content">
+                        Настройка кабинета пациента, онлайн-прикрепление к локальной поликлинике NFZ, заказ карт европейского страхования EKUZ.
+                    </div>
+                </div>
+
+                <div class="service-accordion" onclick="toggleService(this)">
+                    <h4>Безопасность данных</h4>
+                    <div class="service-content">
+                        Мгновенное Zastrzeżenie PESEL от мошеннических кредитов через государственную систему mObywatel.
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Блок 5 — Как это работает -->
+        <section>
+            <div class="section-title">Как строится процесс</div>
+            <div class="card">
+                <ul class="steps-list">
+                    <li class="step-item">
+                        <div class="step-num">1</div>
+                        <div class="step-text">
+                            <h4>Разбор в Telegram</h4>
+                            <p>Вы описываете проблему, мы подбираем формат («Рядом», «Удалёнка», «Советник»).</p>
+                        </div>
+                    </li>
+                    <li class="step-item">
+                        <div class="step-num">2</div>
+                        <div class="step-text">
+                            <h4>Согласование времени</h4>
+                            <p>Учитывая мой сменный график, мы находим идеальное общее окно для работы.</p>
+                        </div>
+                    </li>
+                    <li class="step-item">
+                        <div class="step-num">3</div>
+                        <div class="step-text">
+                            <h4>Техническая сессия</h4>
+                            <p>Заполняем документы, настраиваем приложения или едем лично в инстанцию.</p>
+                        </div>
+                    </li>
+                    <li class="step-item">
+                        <div class="step-num">4</div>
+                        <div class="step-text">
+                            <h4>Финальный контроль</h4>
+                            <p>Проверяем доступы, корректность баз данных, подписываем декларации.</p>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Блок 6 — Безопасность данных -->
+        <section>
+            <div class="note">
+                <span style="color: var(--accent2); font-weight: bold; font-family: 'Unbounded', sans-serif; font-size: 11px; display: block; margin-bottom: 6px;">БЕЗОПАСНОСТЬ ДАННЫХ</span>
+                Никакого хранения ваших паролей. Все сессии, передачи доступов и работа с персональными номерами происходят строго в вашем присутствии. Вся временная информация стирается сразу после закрытия задачи.
+            </div>
+        </section>
+
+        <!-- Блок 7 — Контакт -->
+        <footer>
+            <p>Ввиду основной занятости беру не более 2-3 клиентов в месяц, гарантируя полное погружение. Без конвейера.</p>
+            <a href="https://t.me/ВАШ_НИК" class="btn" target="_blank">Написать мне в Telegram</a>
+        </footer>
+
+    </div>
+
+    <!-- СКРИПТЫ ДЛЯ ИНТЕРАКТИВА -->
+    <script>
+        // Функция для раскрытия списков тарифов
+        function toggleTariff(button) {
+            const card = button.parentElement;
+            const details = card.querySelector('.tariff-details');
+
+            card.classList.toggle('active');
+
+            if (card.classList.contains('active')) {
+                details.style.maxHeight = details.scrollHeight + "px";
+            } else {
+                details.style.maxHeight = "0";
+            }
+        }
+
+        // Функция для аккордеона в блоке услуг
+        function toggleService(element) {
+            element.classList.toggle('open');
+            const content = element.querySelector('.service-content');
+
+            if (element.classList.contains('open')) {
+                content.style.maxHeight = content.scrollHeight + "px";
+            } else {
+                content.style.maxHeight = "0";
+            }
+        }
+    </script>
+
+</body>
+</html>
