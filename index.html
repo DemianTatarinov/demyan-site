@@ -385,7 +385,7 @@
                 <span class="header-badge"></span> WARSAW SUPPORT // INTERFACE CONTROL
             </div>
 
-            <button class="burger-btn" id="burgerBtn">
+            <<button class="burger-btn" id="burgerBtn" style="position: fixed; top: 30px; right: calc(50% - min(410px, 50vw) + 24px); z-index: 2000; background: rgba(228, 231, 235, 0.7); backdrop-filter: blur(10px); padding: 8px; border-radius: 8px; border: 1px solid rgba(203, 213, 227, 0.5);">
                 <span></span>
                 <span></span>
                 <span></span>
@@ -666,9 +666,16 @@
             </div>
         </section>
 
-        <footer>
-            <p>© 2026 Демьян Татаринов. Понятные интерфейсы госсервисов.</p>
-        </footer>
+    <footer style="text-align: center; padding: 24px 0 10px; border-top: 1px solid var(--border); margin-top: 40px;">
+        <div style="display: flex; flex-direction: column; gap: 4px; align-items: center; justify-content: center;">
+            <p style="font-size: 0.85rem; color: var(--text-main); font-weight: 600; font-family: 'Neue Machina', monospace; margin: 0; padding: 0; line-height: 1.2;">
+                &copy; 2026 Демьян Татаринов. Понятные интерфейсы госсервисов.
+            </p>
+            <p style="font-size: 0.75rem; color: var(--text-muted); font-weight: 400; font-family: 'Inter', sans-serif; margin: 0; padding: 0; line-height: 1.2;">
+                Передать данные безопасно. Нажимая кнопку, вы переходите на сторонний зашифрованный сервис.
+            </p>
+        </div>
+    </footer>
 
     </div>
 
@@ -691,6 +698,21 @@
                     WhatsApp
                 </a>
             </div>
+            <div class="sidebar-section" style="margin-top: 24px;">
+            <h4>Инструменты</h4>
+            
+            <a href="https://onetimesecret.com/" class="sidebar-btn btn-secure" target="_blank" rel="noopener noreferrer">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                OneTimeSecret
+            </a>
+            
+            <a href="https://drive.google.com/" class="sidebar-btn btn-outline" target="_blank" rel="noopener noreferrer">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+                Google Drive
+            </a>
+        </div>
+    </div>
+</div>
 
             <div class="sidebar-section">
                 <h4>Передать данные безопасно</h4>
