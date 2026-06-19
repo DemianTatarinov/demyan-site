@@ -1,0 +1,20 @@
+{
+	"siteId": "17eac4e1-f9b8-4d0e-becc-6c981e5f9b79",
+	"liveTunnelSlug": "a24e9182",
+	"geolocation": {
+		"data": {
+			"country": {
+				"code": "PL",
+				"name": "Poland"
+			},
+			"subdivision": {
+				"code": "22",
+				"name": "Pomerania"
+			},
+			"timezone": "Europe/Warsaw",
+			"latitude": 54.3521,
+			"longitude": 18.6484
+		},
+		"timestamp": 1781774535626
+	}
+}
