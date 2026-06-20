@@ -2,52 +2,46 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Безопасная передача</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Безопасная передача — Демьян</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔐</text></svg>">
     <style>
-        /* Стили такие же, как на твоем основном сайте для консистентности */
-        body { background: #e4e7eb; font-family: 'Inter', sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .card { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; }
-        textarea { width: 100%; height: 100px; margin: 20px 0; padding: 15px; border: 1px solid #cbd5e1; border-radius: 12px; resize: none; }
-        button { background: #1e293b; color: white; border: none; padding: 15px 30px; border-radius: 12px; cursor: pointer; width: 100%; font-weight: 700; }
+        body { background: #e4e7eb; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji"; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 1.25rem; box-sizing: border-box; }
+        .card { background: white; padding: 2rem; border-radius: 1.25rem; box-shadow: 0 0.625rem 1.875rem rgba(0,0,0,0.1); width: 100%; max-width: 27.5rem; text-align: center; }
+        h3 { margin-top: 0; color: #1e293b; font-family: "Playfair Display", Georgia, "Times New Roman", Times, serif; }
+        p { font-size: 0.9rem; color: #475569; line-height: 1.5; margin-bottom: 1.5rem; }
+        .instruction-box { text-align: left; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 0.75rem; padding: 1rem; margin-bottom: 1.5rem; }
+        .instruction-box h4 { margin: 0 0 0.5rem 0; font-size: 0.85rem; color: #1e293b; text-transform: uppercase; letter-spacing: 0.05em; }
+        .instruction-box ol { margin: 0; padding-left: 1.25rem; font-size: 0.85rem; color: #475569; }
+        .instruction-box li { margin-bottom: 0.5rem; }
+        button { background: #1e293b; color: white; border: none; padding: 1rem 1.875rem; border-radius: 0.75rem; cursor: pointer; width: 100%; font-weight: 700; font-size: 1rem; transition: background 0.2s; display: block; text-decoration: none; }
         button:hover { background: #0f172a; }
-        #result { margin-top: 20px; word-break: break-all; font-weight: bold; }
+        .back-link { display: inline-block; margin-top: 1.5rem; color: #64748b; text-decoration: none; font-size: 0.85rem; }
+        .back-link:hover { text-decoration: underline; }
     </style>
 </head>
 <body>
 
 <div class="card">
     <h3>Безопасная передача</h3>
-    <p style="font-size: 0.8rem; color: #475569;">Данные исчезнут после первого открытия.</p>
-    <textarea id="secretInput" placeholder="Вставь пароль или код сюда..."></textarea>
-    <button onclick="createSecret()">ОТПРАВИТЬ БЕЗОПАСНО</button>
-    <div id="result"></div>
+    <p>Для передачи паролей и кодов мы используем сторонний сервис <b>OneTimeSecret</b>. Это гарантирует, что данные будут удалены сразу после прочтения.</p>
+
+    <div class="instruction-box">
+        <h4>Как это сделать:</h4>
+        <ol>
+            <li>Нажмите на кнопку ниже, чтобы перейти на OneTimeSecret.</li>
+            <li>Вставьте ваш секрет в текстовое поле на их сайте.</li>
+            <li>Нажмите кнопку <b>"Create a secret link"</b>.</li>
+            <li>Скопируйте полученную ссылку и пришлите мне в Telegram или WhatsApp.</li>
+        </ol>
+    </div>
+
+    <a href="https://onetimesecret.com/" target="_blank" rel="noopener noreferrer" style="text-decoration: none;">
+        <button>ПЕРЕЙТИ НА ONETIMESECRET</button>
+    </a>
+
+    <a href="index.html" class="back-link">← Вернуться на главную</a>
 </div>
-
-<script>
-async function createSecret() {
-    const input = document.getElementById('secretInput');
-    const resultDiv = document.getElementById('result');
-    if (!input.value) return alert('Введите данные!');
-
-    resultDiv.innerText = 'Создаю ссылку...';
-
-    try {
-        // Мы используем API One-Time Secret
-        const response = await fetch('https://onetimesecret.com/api/v1/share', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: `secret=${encodeURIComponent(input.value)}&passphrase=&ttl=3600`
-        });
-
-        const data = await response.json();
-        if (data.secret_link) {
-            resultDiv.innerHTML = `Готово! Скопируй ссылку и пришли мне:<br><br><input type="text" value="${data.secret_link}" style="width:100%; padding:8px;" readonly>`;
-        }
-    } catch (e) {
-        resultDiv.innerText = 'Ошибка соединения. Попробуйте еще раз.';
-    }
-}
-</script>
 
 </body>
 </html>
