@@ -17,8 +17,8 @@
     <meta property="og:locale" content="ru_RU">
     <meta property="og:site_name" content="Warsaw Support">
     <meta property="og:image" content="https://warsaw-support.waw.pl/og-image.jpg">
-    <meta property="og:image:width" content="1200">
-    <meta property="og:image:height" content="630">
+    <meta property="og:image:width" content="1424">
+    <meta property="og:image:height" content="752">
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
@@ -398,7 +398,7 @@
         .bento-item h4::after { content: "+"; color: var(--text-muted); font-size: 1.2rem; transition: transform 0.3s; }
         .bento-item.open h4::after { transform: rotate(45deg); color: var(--tg-color); }
         .bento-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; font-size: 0.9rem; color: var(--text-muted); line-height: 1.5; }
-        .bento-item.open .bento-content { max-height: 18.75rem; margin-top: 0.4rem; color: #1e293b; }
+        .bento-item.open .bento-content { max-height: 18.75rem; margin-top: 0.25rem; color: #1e293b; }
 
         .steps-layout {
             display: flex;
@@ -475,7 +475,7 @@
         .faq-question::after { content: "+"; color: var(--text-muted); font-size: 1.1rem; transition: transform 0.3s; }
         .faq-item.open .faq-question::after { transform: rotate(45deg); color: var(--accent); }
         .faq-answer { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; font-size: 0.9rem; color: var(--text-muted); }
-        .faq-item.open .faq-answer { max-height: 18.75rem; margin-top: 0.4rem; color: #1e293b; }
+        .faq-item.open .faq-answer { max-height: 18.75rem; margin-top: 0.25rem; color: #1e293b; }
 
 
         .quiz-container {
@@ -677,7 +677,7 @@
             display: flex;
             flex-direction: column-reverse;
             align-items: flex-end;
-            gap: 0.4rem;
+            gap: 0.25rem;
             opacity: 0;
             pointer-events: none;
             transform: translateY(1rem);
@@ -1164,7 +1164,7 @@
         </div>
     </div>
 
-    <div id="cookieNotice" style="position: fixed; bottom: 0; left: 0; right: 0; background: var(--surface); border-top: 1px solid var(--border); padding: 16px 24px; z-index: 5000; box-shadow: 0 -4px 20px rgba(0,0,0,0.05); display: none; align-items: center; justify-content: center; gap: 24px; flex-wrap: wrap;">
+    <div id="cookieNotice" style="position: fixed; bottom: 0; left: 0; right: 0; background: var(--surface); border-top: 1px solid var(--border); padding: 16px 24px; z-index: 5000; box-shadow: 0 -4px 20px rgba(0,0,0,0.05); display: none; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap;">
         <p style="font-size: 0.85rem; margin: 0; color: var(--text-muted); text-align: center; font-weight: 500;">Этот сайт использует файлы cookie. Продолжая использование вы соглашаетесь с <a href="privacy.html" style="color: var(--accent); font-weight: 700; text-decoration: underline;">политикой конфиденциальности</a>.</p>
         <button onclick="acceptCookies()" style="background: var(--accent); color: #fff; border: none; padding: 10px 24px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 0.8rem;  text-transform: uppercase; letter-spacing: 0.05em;">Понятно</button>
     </div>
@@ -1229,6 +1229,7 @@
         sidebarOverlay.addEventListener('click', toggleSidebar);
 
         // Scroll Reveal Animation with fallback
+        var reveals = document.querySelectorAll('.reveal');
         if ('IntersectionObserver' in window) {
             var observer = new IntersectionObserver(function(entries) {
                 entries.forEach(function(entry) {
@@ -1239,12 +1240,12 @@
                 });
             }, { threshold: 0.1 });
 
-            document.querySelectorAll('.reveal').forEach(function(el) {
+            reveals.forEach(function(el) {
                 observer.observe(el);
             });
         } else {
             // Fallback for older browsers
-            document.querySelectorAll('.reveal').forEach(function(el) {
+            reveals.forEach(function(el) {
                 el.classList.add('active');
             });
         }
@@ -1337,10 +1338,9 @@
         }
 
         setInterval(function() {
-            var burger = document.getElementById('burgerBtn');
-            if (burger) {
-                burger.classList.add('wiggle');
-                setTimeout(function() { burger.classList.remove('wiggle'); }, 500);
+            if (burgerBtn) {
+                burgerBtn.classList.add('wiggle');
+                setTimeout(function() { burgerBtn.classList.remove('wiggle'); }, 500);
             }
         }, 5000);
 
