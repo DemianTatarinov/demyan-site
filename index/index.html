@@ -204,7 +204,7 @@
         .close-btn { background: none; border: none; font-size: 2rem; color: var(--text-muted); cursor: pointer; line-height: 1; transition: color 0.2s; }
         .close-btn:hover { color: var(--accent); }
 
-        .sidebar-content { padding: 2rem; display: flex; flex-direction: column; gap: 2rem; }
+        .sidebar-content { padding: 2rem; display: flex; flex-direction: column; gap: 3rem; }
 
         .sidebar-section h4 { font-size: 0.85rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.75rem; letter-spacing: 0.05em; font-weight: 700; }
         .sidebar-section p { font-size: 0.85rem; color: var(--text-main); margin-bottom: 1rem; line-height: 1.5; }
@@ -213,7 +213,7 @@
             display: flex; align-items: center; justify-content: center; gap: 0.5rem;
             width: 100%; padding: 0.875rem; border-radius: 0.75rem;
             font-size: 0.9rem; font-weight: 700; text-transform: uppercase;
-            text-decoration: none; transition: all 0.2s ease; cursor: pointer; margin-bottom: 0.625rem;
+            text-decoration: none; transition: all 0.2s ease; cursor: pointer; margin-bottom: 1.25rem;
         }
         .sidebar-btn:last-child { margin-bottom: 0; }
         .sidebar-btn svg { width: 1.125rem; height: 1.125rem; }
@@ -629,9 +629,9 @@
         .burger-btn.wiggle { animation: wiggle 0.5s ease-in-out; }
 
         /* Cookie Notice overlap fix */
-        body.cookies-open .fab-container { bottom: 6.25rem; }
+        body.cookies-open .fab-container { bottom: 5rem; }
         @media(max-width: 35rem) {
-            body.cookies-open .fab-container { bottom: 11.25rem; }
+            body.cookies-open .fab-container { bottom: 8.5rem; }
         }
 
 
@@ -1156,15 +1156,16 @@
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>
                     OneTimeSecret
                 </a>
-                <a href="https://drive.google.com/" class="sidebar-btn btn-outline" target="_blank" rel="noopener noreferrer">
+                <a href="https://forms.gle/u3AxFeq3GWsgafFG8" class="sidebar-btn btn-outline" target="_blank" rel="noopener noreferrer" style="margin-bottom: 0.5rem;">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" /></svg>
-                    Google Drive
+                    ОТПРАВИТЬ ЗАПРОС
                 </a>
+                <span style="display: block; font-size: 0.75rem; color: var(--text-muted); line-height: 1.4; text-align: left; padding: 0 0.25rem;">Нажмите чтобы сообщить мне о готовности загрузить документы. Я создам личную папку и отправлю ссылку в Telegram.</span>
             </div>
         </div>
     </div>
 
-    <div id="cookieNotice" style="position: fixed; bottom: 0; left: 0; right: 0; background: var(--surface); border-top: 1px solid var(--border); padding: 16px 24px; z-index: 5000; box-shadow: 0 -4px 20px rgba(0,0,0,0.05); display: none; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap;">
+    <div id="cookieNotice" style="position: fixed; bottom: 0; left: 0; right: 0; background: var(--surface); border-top: 1px solid var(--border); padding: 12px 24px; z-index: 5000; box-shadow: 0 -4px 20px rgba(0,0,0,0.05); display: none; align-items: center; justify-content: center; gap: 24px; flex-wrap: wrap;">
         <p style="font-size: 0.85rem; margin: 0; color: var(--text-muted); text-align: center; font-weight: 500;">Этот сайт использует файлы cookie. Продолжая использование вы соглашаетесь с <a href="privacy.html" style="color: var(--accent); font-weight: 700; text-decoration: underline;">политикой конфиденциальности</a>.</p>
         <button onclick="acceptCookies()" style="background: var(--accent); color: #fff; border: none; padding: 10px 24px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 0.8rem;  text-transform: uppercase; letter-spacing: 0.05em;">Понятно</button>
     </div>
