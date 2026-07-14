@@ -1,2 +1,17 @@
 # Local Netlify folder
 .netlify
+
+# Python Cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+
+# Environments and Secrets
+.env
+venv/
+env/
+ENV/
+cookies.txt
+*.log
