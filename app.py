@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 """
-Fedora / Wayland Modern PDF Continuous-Scroll Editor, Cropper & Merger
+Fedora / Wayland Modern PDF Continuous-Scroll Editor, Cropper, Merger & Text Extractor
 Features:
-1. Continuous vertical scroll view
-2. Multi-page & cross-page cropping selection
-3. Highlighting and annotation export
-4. PDF Merge capability
-5. Full UI localization (Russian default, RU/EN dynamic switcher)
-6. Interactive zoom via Ctrl + Mouse Wheel
+1. Merge PDFs functionality
+2. Russian UI by default
+3. Language toggle (RU / EN) without restart
+4. Zoom via Ctrl + Mouse Wheel
+5. Dynamic Zoom Percentage indicator
+6. Page Rotation (90°) and Page Deletion for visible/centered page
+7. Area-based Text Extraction directly to system clipboard
 """
 
 import sys
@@ -20,7 +21,7 @@ from PyQt6.QtWidgets import (
     QToolBar, QLabel, QComboBox, QStatusBar
 )
 
-# Translation dictionary for localization (Russian / English)
+# Feature 2 & 3: Translation dictionary for localization (Russian / English)
 TRANSLATIONS = {
     "RU": {
         "title": "Редактор и Кроппер PDF (Fedora Wayland)",
@@ -34,6 +35,11 @@ TRANSLATIONS = {
         "mode_nav": "Панорамирование / Просмотр",
         "mode_crop": "Выделение Кропа (Межстраничное)",
         "mode_hl": "Выделение Маркером",
+        "mode_extract": "Извлечение Текста",
+        "rotate": "Повернуть 90°",
+        "rotate_tip": "Повернуть текущую видимую страницу на 90 градусов по часовой стрелке",
+        "delete_page": "Удалить Страницу",
+        "delete_page_tip": "Удалить текущую видимую страницу из документа",
         "clear_crop": "Сбросить Кроп",
         "clear_hl": "Сбросить Маркеры",
         "lang_label": " Язык / Lang: ",
@@ -42,10 +48,14 @@ TRANSLATIONS = {
         "ready_status": "Готово. Откройте PDF документ для работы.",
         "mode_crop_msg": "Режим: Кроп. Выделите область (можно через границы страниц) для обрезки.",
         "mode_hl_msg": "Режим: Маркер. Выделите область для подсветки текста.",
+        "mode_extract_msg": "Режим: Извлечение Текста. Выделите прямоугольником текст для копирования в буфер обмена.",
         "mode_nav_msg": "Режим: Просмотр. Зажмите левую кнопку мыши для перемещения. Ctrl + Колесико для масштаба.",
         "status_base": "Документ: {} стр. (Непрерывная прокрутка)",
         "status_crop": " | Область кропа: {}x{} px",
         "status_hl": " | Выделений маркером: {}",
+        "zoom_label": " Масштаб: {}%",
+        "text_copied": "Скопировано в буфер обмена ({} симв.)",
+        "text_no_found": "В выделенной области текст не найден",
         "msg_encrypted_title": "Зашифрованный PDF",
         "msg_encrypted_body": "Зашифрованные или защищенные паролем PDF файлы не поддерживаются.",
         "msg_err_open_title": "Ошибка открытия PDF",
@@ -62,7 +72,9 @@ TRANSLATIONS = {
         "msg_merge_ok_title": "Объединение завершено",
         "msg_merge_ok_body": "Объединенный файл успешно сохранен в:\n{}",
         "msg_merge_err_title": "Ошибка объединения",
-        "msg_merge_err_body": "Не удалось объединить PDF файлы:\n{}"
+        "msg_merge_err_body": "Не удалось объединить PDF файлы:\n{}",
+        "msg_confirm_del_title": "Подтверждение удаления",
+        "msg_confirm_del_body": "Вы уверены, что хотите удалить страницу {}?"
     },
     "EN": {
         "title": "Fedora PDF Editor & Cross-Page Cropper",
@@ -76,6 +88,11 @@ TRANSLATIONS = {
         "mode_nav": "Pan / View Document",
         "mode_crop": "Select Cross-Page Crop",
         "mode_hl": "Highlight Selection",
+        "mode_extract": "Extract Text",
+        "rotate": "Rotate 90°",
+        "rotate_tip": "Rotate currently visible page 90 degrees clockwise",
+        "delete_page": "Delete Page",
+        "delete_page_tip": "Delete currently visible page from document",
         "clear_crop": "Clear Crop",
         "clear_hl": "Clear Highlights",
         "lang_label": " Language / Язык: ",
@@ -84,10 +101,14 @@ TRANSLATIONS = {
         "ready_status": "Ready. Open a PDF document to begin.",
         "mode_crop_msg": "Mode: Crop. Drag across pages to select any area to crop.",
         "mode_hl_msg": "Mode: Highlight. Drag across any area to add a visual highlight.",
+        "mode_extract_msg": "Mode: Extract Text. Drag a rectangle over text to copy it to system clipboard.",
         "mode_nav_msg": "Mode: View. Click and drag to scroll. Ctrl + Mouse Wheel to zoom.",
         "status_base": "Document: {} Pages (Continuous Scroll)",
         "status_crop": " | Crop Selection Set: {}x{} px",
         "status_hl": " | Highlight(s): {}",
+        "zoom_label": " Zoom: {}%",
+        "text_copied": "Text copied to clipboard ({} chars)",
+        "text_no_found": "No text found in selected region",
         "msg_encrypted_title": "Encrypted PDF",
         "msg_encrypted_body": "Encrypted/password-protected PDFs are not supported.",
         "msg_err_open_title": "Error Loading PDF",
@@ -104,17 +125,22 @@ TRANSLATIONS = {
         "msg_merge_ok_title": "Merge Complete",
         "msg_merge_ok_body": "Merged file saved successfully to:\n{}",
         "msg_merge_err_title": "Merge Error",
-        "msg_merge_err_body": "Failed to merge PDF files:\n{}"
+        "msg_merge_err_body": "Failed to merge PDF files:\n{}",
+        "msg_confirm_del_title": "Confirm Deletion",
+        "msg_confirm_del_body": "Are you sure you want to delete page {}?"
     }
 }
 
 
 class PDFGraphicsView(QGraphicsView):
-    """Custom QGraphicsView with Ctrl + Mouse Wheel zoom support and standard vertical scrolling."""
+    """Custom QGraphicsView with Ctrl + Mouse Wheel zoom support and zoom signal reporting."""
+    zoom_changed = pyqtSignal(float)
+
     def __init__(self, scene, parent=None):
         super().__init__(scene, parent)
         self.setRenderHints(QPainter.RenderHint.Antialiasing | QPainter.RenderHint.SmoothPixmapTransform)
         self.setDragMode(QGraphicsView.DragMode.ScrollHandDrag)
+        self.current_zoom = 1.0
 
     def wheelEvent(self, event):
         # Feature 4: Zoom via Ctrl + Mouse Wheel
@@ -124,8 +150,13 @@ class PDFGraphicsView(QGraphicsView):
 
             if event.angleDelta().y() > 0:
                 self.scale(zoom_in_factor, zoom_in_factor)
+                self.current_zoom *= zoom_in_factor
             else:
                 self.scale(zoom_out_factor, zoom_out_factor)
+                self.current_zoom *= zoom_out_factor
+
+            # Feature 5: Report zoom change
+            self.zoom_changed.emit(self.current_zoom)
             event.accept()
         else:
             # Standard vertical scrolling when Ctrl is not pressed
@@ -135,16 +166,20 @@ class PDFGraphicsView(QGraphicsView):
 class ContinuousPDFCanvasScene(QGraphicsScene):
     """Interactive graphics scene rendering all PDF pages in a continuous vertical column."""
     selection_changed = pyqtSignal()
+    text_extracted = pyqtSignal(str)
 
     MODE_NAVIGATE = 0
     MODE_CROP = 1
     MODE_HIGHLIGHT = 2
+    MODE_EXTRACT_TEXT = 3  # Feature 7: Text extraction mode
 
     def __init__(self, parent=None):
         super().__init__(parent)
         self.mode = self.MODE_NAVIGATE
         self.start_point = None
         self.current_rect_item = None
+        self.doc_ref = None    # Reference to PyMuPDF document
+        self.zoom_factor = 2.0 # High DPI scale factor
 
         # Items and data tracking
         self.page_items = []      # List of (page_num, QGraphicsPixmapItem, QRectF scene_rect)
@@ -172,7 +207,7 @@ class ContinuousPDFCanvasScene(QGraphicsScene):
 
         pos = event.scenePos()
 
-        if self.mode in (self.MODE_CROP, self.MODE_HIGHLIGHT):
+        if self.mode in (self.MODE_CROP, self.MODE_HIGHLIGHT, self.MODE_EXTRACT_TEXT):
             self.start_point = pos
             rect = QRectF(self.start_point, self.start_point)
 
@@ -195,13 +230,20 @@ class ContinuousPDFCanvasScene(QGraphicsScene):
                 self.current_rect_item.setPen(pen)
                 self.current_rect_item.setBrush(brush)
                 self.addItem(self.current_rect_item)
+
+            elif self.mode == self.MODE_EXTRACT_TEXT:
+                pen = QPen(QColor(46, 125, 50), 2, Qt.PenStyle.DotLine)
+                brush = QBrush(QColor(76, 175, 80, 40))
+                self.current_rect_item = QGraphicsRectItem(rect)
+                self.current_rect_item.setPen(pen)
+                self.current_rect_item.setBrush(brush)
+                self.addItem(self.current_rect_item)
         else:
             super().mousePressEvent(event)
 
     def mouseMoveEvent(self, event):
         if self.start_point and self.current_rect_item:
             current_pos = event.scenePos()
-            # Constrain to total scene bounds
             bounds = self.sceneRect()
             clamped_x = max(bounds.left(), min(current_pos.x(), bounds.right()))
             clamped_y = max(bounds.top(), min(current_pos.y(), bounds.bottom()))
@@ -222,6 +264,33 @@ class ContinuousPDFCanvasScene(QGraphicsScene):
                 elif self.mode == self.MODE_HIGHLIGHT:
                     self.highlight_items.append(self.current_rect_item)
                     self.highlight_rects.append(rect)
+                elif self.mode == self.MODE_EXTRACT_TEXT:
+                    # Feature 7: Extract text from selected rectangle across page(s)
+                    extracted_parts = []
+                    scale = 1.0 / self.zoom_factor
+                    if self.doc_ref:
+                        for page_idx, item, page_scene_rect in self.page_items:
+                            intersect = rect.intersected(page_scene_rect)
+                            if not intersect.isEmpty():
+                                local_rect = QRectF(
+                                    intersect.left() - page_scene_rect.left(),
+                                    intersect.top() - page_scene_rect.top(),
+                                    intersect.width(),
+                                    intersect.height()
+                                )
+                                pdf_rect = fitz.Rect(
+                                    local_rect.left() * scale,
+                                    local_rect.top() * scale,
+                                    local_rect.right() * scale,
+                                    local_rect.bottom() * scale
+                                )
+                                text = self.doc_ref[page_idx].get_text("text", clip=pdf_rect)
+                                if text:
+                                    extracted_parts.append(text.strip())
+
+                    full_text = "\n".join(extracted_parts)
+                    self.removeItem(self.current_rect_item)
+                    self.text_extracted.emit(full_text)
             else:
                 self.removeItem(self.current_rect_item)
                 if self.mode == self.MODE_CROP:
@@ -251,7 +320,7 @@ class ContinuousPDFCanvasScene(QGraphicsScene):
 class PDFEditorWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        # Feature 2: Set Russian by default
+        # Feature 2: Russian interface by default
         self.current_lang = "RU"
 
         self.doc = None
@@ -261,18 +330,24 @@ class PDFEditorWindow(QMainWindow):
 
         self.scene = ContinuousPDFCanvasScene(self)
         self.scene.selection_changed.connect(self.update_status_bar)
+        self.scene.text_extracted.connect(self.handle_extracted_text)
 
         self.view = PDFGraphicsView(self.scene, self)
+        self.view.zoom_changed.connect(self.update_zoom_indicator)
         self.setCentralWidget(self.view)
 
         self.statusBar = QStatusBar()
         self.setStatusBar(self.statusBar)
 
+        # Feature 5: Zoom percentage indicator widget in status bar
+        self.zoom_indicator = QLabel(" Zoom: 100% ", self)
+        self.statusBar.addPermanentWidget(self.zoom_indicator)
+
         self._create_toolbar()
         self.update_ui_text()
 
     def tr(self, key):
-        """Helper method to fetch localized string for current language."""
+        """Fetch localized string for active language."""
         return TRANSLATIONS.get(self.current_lang, TRANSLATIONS["RU"]).get(key, "")
 
     def _create_toolbar(self):
@@ -299,10 +374,21 @@ class PDFEditorWindow(QMainWindow):
         # Tool Mode selection
         self.mode_label = QLabel(self)
         self.mode_combo = QComboBox()
-        self.mode_combo.addItems(["", "", ""]) # Options populated by update_ui_text
+        self.mode_combo.addItems(["", "", "", ""])
         self.mode_combo.currentIndexChanged.connect(self.on_mode_changed)
         self.toolbar.addWidget(self.mode_label)
         self.toolbar.addWidget(self.mode_combo)
+
+        self.toolbar.addSeparator()
+
+        # Feature 6: Page Rotation and Page Deletion Actions
+        self.rotate_act = QAction(self)
+        self.rotate_act.triggered.connect(self.rotate_current_page)
+        self.toolbar.addAction(self.rotate_act)
+
+        self.delete_page_act = QAction(self)
+        self.delete_page_act.triggered.connect(self.delete_current_page)
+        self.toolbar.addAction(self.delete_page_act)
 
         self.toolbar.addSeparator()
 
@@ -317,7 +403,7 @@ class PDFEditorWindow(QMainWindow):
 
         self.toolbar.addSeparator()
 
-        # Feature 3: Language Toggle (RU / EN) Selector
+        # Feature 3: Language Toggle Selector (RU / EN)
         self.lang_label = QLabel(self)
         self.lang_combo = QComboBox()
         self.lang_combo.addItems(["Русский (RU)", "English (EN)"])
@@ -331,7 +417,7 @@ class PDFEditorWindow(QMainWindow):
         self.toolbar.addWidget(self.doc_info_label)
 
     def update_ui_text(self):
-        """Feature 3: Dynamically updates all UI text strings for current language."""
+        """Feature 3: Dynamically updates all UI texts for current language without restart."""
         self.setWindowTitle(self.tr("title"))
 
         self.open_act.setText(self.tr("open"))
@@ -343,16 +429,22 @@ class PDFEditorWindow(QMainWindow):
         self.save_act.setText(self.tr("save"))
         self.save_act.setStatusTip(self.tr("save_tip"))
 
+        self.rotate_act.setText(self.tr("rotate"))
+        self.rotate_act.setStatusTip(self.tr("rotate_tip"))
+
+        self.delete_page_act.setText(self.tr("delete_page"))
+        self.delete_page_act.setStatusTip(self.tr("delete_page_tip"))
+
         self.mode_label.setText(self.tr("mode_label"))
 
-        # Block signals temporarily to prevent index trigger during text update
         self.mode_combo.blockSignals(True)
         curr_idx = self.mode_combo.currentIndex()
         self.mode_combo.clear()
         self.mode_combo.addItems([
             self.tr("mode_nav"),
             self.tr("mode_crop"),
-            self.tr("mode_hl")
+            self.tr("mode_hl"),
+            self.tr("mode_extract")
         ])
         self.mode_combo.setCurrentIndex(max(0, curr_idx))
         self.mode_combo.blockSignals(False)
@@ -367,10 +459,16 @@ class PDFEditorWindow(QMainWindow):
         else:
             self.doc_info_label.setText(self.tr("doc_none"))
 
+        self.update_zoom_indicator(self.view.current_zoom)
         self.update_status_bar()
 
+    def update_zoom_indicator(self, zoom_scale):
+        """Feature 5: Update zoom percentage indicator dynamically."""
+        percent = int(zoom_scale * 100)
+        self.zoom_indicator.setText(self.tr("zoom_label").format(percent))
+
     def on_language_changed(self, index):
-        """Handles language toggle dropdown changes."""
+        """Handles language toggle changes."""
         self.current_lang = "RU" if index == 0 else "EN"
         self.update_ui_text()
 
@@ -382,9 +480,77 @@ class PDFEditorWindow(QMainWindow):
         elif index == ContinuousPDFCanvasScene.MODE_HIGHLIGHT:
             self.view.setDragMode(QGraphicsView.DragMode.NoDrag)
             self.statusBar.showMessage(self.tr("mode_hl_msg"))
+        elif index == ContinuousPDFCanvasScene.MODE_EXTRACT_TEXT:
+            self.view.setDragMode(QGraphicsView.DragMode.NoDrag)
+            self.statusBar.showMessage(self.tr("mode_extract_msg"))
         else:
             self.view.setDragMode(QGraphicsView.DragMode.ScrollHandDrag)
             self.statusBar.showMessage(self.tr("mode_nav_msg"))
+
+    def get_most_visible_page_index(self):
+        """Feature 6 Helper: Determines which page is centered/most visible in viewport."""
+        if not self.doc or not self.scene.page_items:
+            return 0
+
+        viewport_center = self.view.viewport().rect().center()
+        scene_center = self.view.mapToScene(viewport_center)
+
+        for page_idx, item, scene_rect in self.scene.page_items:
+            if scene_rect.contains(scene_center):
+                return page_idx
+
+        # Fallback to closest page if center point falls between margins
+        min_dist = float('inf')
+        closest_idx = 0
+        for page_idx, item, scene_rect in self.scene.page_items:
+            dist = abs(scene_rect.center().y() - scene_center.y())
+            if dist < min_dist:
+                min_dist = dist
+                closest_idx = page_idx
+        return closest_idx
+
+    def rotate_current_page(self):
+        """Feature 6: Rotate currently visible page 90 degrees clockwise."""
+        if not self.doc or len(self.doc) == 0:
+            QMessageBox.information(self, self.tr("msg_no_doc_title"), self.tr("msg_no_doc_body"))
+            return
+
+        page_idx = self.get_most_visible_page_index()
+        page = self.doc[page_idx]
+        current_rot = page.rotation
+        page.set_rotation((current_rot + 90) % 360)
+
+        self.render_continuous_document()
+
+    def delete_current_page(self):
+        """Feature 6: Delete currently visible page from document."""
+        if not self.doc or len(self.doc) == 0:
+            QMessageBox.information(self, self.tr("msg_no_doc_title"), self.tr("msg_no_doc_body"))
+            return
+
+        if len(self.doc) == 1:
+            QMessageBox.warning(self, self.tr("delete_page"), "Cannot delete the only page in document.")
+            return
+
+        page_idx = self.get_most_visible_page_index()
+        confirm = QMessageBox.question(
+            self,
+            self.tr("msg_confirm_del_title"),
+            self.tr("msg_confirm_del_body").format(page_idx + 1),
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+        )
+        if confirm == QMessageBox.StandardButton.Yes:
+            self.doc.delete_page(page_idx)
+            self.render_continuous_document()
+            self.doc_info_label.setText(self.tr("doc_pages").format(len(self.doc)))
+
+    def handle_extracted_text(self, text):
+        """Feature 7: Copy extracted text to system clipboard and notify in status bar."""
+        if text:
+            QApplication.clipboard().setText(text)
+            self.statusBar.showMessage(self.tr("text_copied").format(len(text)), 4000)
+        else:
+            self.statusBar.showMessage(self.tr("text_no_found"), 4000)
 
     def open_file(self):
         file_path, _ = QFileDialog.getOpenFileName(
@@ -400,6 +566,7 @@ class PDFEditorWindow(QMainWindow):
                 return
 
             self.doc = doc
+            self.scene.doc_ref = doc
             self.file_path = file_path
             self.render_continuous_document()
             self.doc_info_label.setText(self.tr("doc_pages").format(len(doc)))
@@ -437,8 +604,9 @@ class PDFEditorWindow(QMainWindow):
                 self, self.tr("msg_merge_ok_title"), self.tr("msg_merge_ok_body").format(save_path)
             )
 
-            # Auto-open merged document for editing
+            # Auto-open merged document
             self.doc = fitz.open(save_path)
+            self.scene.doc_ref = self.doc
             self.file_path = save_path
             self.render_continuous_document()
             self.doc_info_label.setText(self.tr("doc_pages").format(len(self.doc)))
