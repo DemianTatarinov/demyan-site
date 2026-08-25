@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Fedora / Wayland Modern PDF Continuous-Scroll Editor, Cropper, Merger & Text Extractor
+Fedora / Wayland Modern PDF Continuous-Scroll Editor, Cropper, Merger & Redactor
 Features:
 1. Merge PDFs functionality
 2. Russian UI by default
@@ -9,6 +9,7 @@ Features:
 5. Dynamic Zoom Percentage indicator
 6. Page Rotation (90°) and Page Deletion for visible/centered page
 7. Area-based Text Extraction directly to system clipboard
+8. Erase / Redact Selected Area permanently using PyMuPDF
 """
 
 import sys
@@ -21,7 +22,7 @@ from PyQt6.QtWidgets import (
     QToolBar, QLabel, QComboBox, QStatusBar
 )
 
-# Feature 2 & 3: Translation dictionary for localization (Russian / English)
+# Translation dictionary for localization (Russian / English)
 TRANSLATIONS = {
     "RU": {
         "title": "Редактор и Кроппер PDF (Fedora Wayland)",
@@ -29,13 +30,14 @@ TRANSLATIONS = {
         "open_tip": "Открыть один PDF файл",
         "merge": "Объединить PDF",
         "merge_tip": "Объединить несколько PDF файлов в один",
-        "save": "Сохранить Кроп / Аннотации",
-        "save_tip": "Экспортировать выбранную область кроппинга или аннотации в новый PDF файл",
+        "save": "Сохранить Документ / Кроп / Аннотации",
+        "save_tip": "Экспортировать выбранную область кроппинга или сохранить изменения документа в новый PDF файл",
         "mode_label": " Режим инструмента: ",
         "mode_nav": "Панорамирование / Просмотр",
         "mode_crop": "Выделение Кропа (Межстраничное)",
         "mode_hl": "Выделение Маркером",
         "mode_extract": "Извлечение Текста",
+        "mode_erase": "Стереть / Редактировать область",
         "rotate": "Повернуть 90°",
         "rotate_tip": "Повернуть текущую видимую страницу на 90 градусов по часовой стрелке",
         "delete_page": "Удалить Страницу",
@@ -49,6 +51,7 @@ TRANSLATIONS = {
         "mode_crop_msg": "Режим: Кроп. Выделите область (можно через границы страниц) для обрезки.",
         "mode_hl_msg": "Режим: Маркер. Выделите область для подсветки текста.",
         "mode_extract_msg": "Режим: Извлечение Текста. Выделите прямоугольником текст для копирования в буфер обмена.",
+        "mode_erase_msg": "Режим: Стереть область. Выделите прямоугольником содержимое для полного удаления (редактирования).",
         "mode_nav_msg": "Режим: Просмотр. Зажмите левую кнопку мыши для перемещения. Ctrl + Колесико для масштаба.",
         "status_base": "Документ: {} стр. (Непрерывная прокрутка)",
         "status_crop": " | Область кропа: {}x{} px",
@@ -56,6 +59,7 @@ TRANSLATIONS = {
         "zoom_label": " Масштаб: {}%",
         "text_copied": "Скопировано в буфер обмена ({} симв.)",
         "text_no_found": "В выделенной области текст не найден",
+        "area_erased": "Выбранная область успешно удалена (стирание зафиксировано)",
         "msg_encrypted_title": "Зашифрованный PDF",
         "msg_encrypted_body": "Зашифрованные или защищенные паролем PDF файлы не поддерживаются.",
         "msg_err_open_title": "Ошибка открытия PDF",
@@ -82,13 +86,14 @@ TRANSLATIONS = {
         "open_tip": "Open a single PDF file",
         "merge": "Merge PDFs",
         "merge_tip": "Combine multiple PDF files into one",
-        "save": "Save Crop / Annotations",
-        "save_tip": "Export cropped selection or annotations as a new PDF file",
+        "save": "Save Document / Crop / Annotations",
+        "save_tip": "Export cropped selection or save modified document to a new PDF file",
         "mode_label": " Tool Mode: ",
         "mode_nav": "Pan / View Document",
         "mode_crop": "Select Cross-Page Crop",
         "mode_hl": "Highlight Selection",
         "mode_extract": "Extract Text",
+        "mode_erase": "Erase / Redact Area",
         "rotate": "Rotate 90°",
         "rotate_tip": "Rotate currently visible page 90 degrees clockwise",
         "delete_page": "Delete Page",
@@ -102,6 +107,7 @@ TRANSLATIONS = {
         "mode_crop_msg": "Mode: Crop. Drag across pages to select any area to crop.",
         "mode_hl_msg": "Mode: Highlight. Drag across any area to add a visual highlight.",
         "mode_extract_msg": "Mode: Extract Text. Drag a rectangle over text to copy it to system clipboard.",
+        "mode_erase_msg": "Mode: Erase Area. Drag a rectangle over content to permanently redact/blank it out.",
         "mode_nav_msg": "Mode: View. Click and drag to scroll. Ctrl + Mouse Wheel to zoom.",
         "status_base": "Document: {} Pages (Continuous Scroll)",
         "status_crop": " | Crop Selection Set: {}x{} px",
@@ -109,6 +115,7 @@ TRANSLATIONS = {
         "zoom_label": " Zoom: {}%",
         "text_copied": "Text copied to clipboard ({} chars)",
         "text_no_found": "No text found in selected region",
+        "area_erased": "Selected area successfully redacted/erased",
         "msg_encrypted_title": "Encrypted PDF",
         "msg_encrypted_body": "Encrypted/password-protected PDFs are not supported.",
         "msg_err_open_title": "Error Loading PDF",
@@ -167,11 +174,13 @@ class ContinuousPDFCanvasScene(QGraphicsScene):
     """Interactive graphics scene rendering all PDF pages in a continuous vertical column."""
     selection_changed = pyqtSignal()
     text_extracted = pyqtSignal(str)
+    request_render = pyqtSignal()
 
     MODE_NAVIGATE = 0
     MODE_CROP = 1
     MODE_HIGHLIGHT = 2
-    MODE_EXTRACT_TEXT = 3  # Feature 7: Text extraction mode
+    MODE_EXTRACT_TEXT = 3
+    MODE_ERASE = 4  # Feature 8: Redact/Erase selected area
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -207,7 +216,7 @@ class ContinuousPDFCanvasScene(QGraphicsScene):
 
         pos = event.scenePos()
 
-        if self.mode in (self.MODE_CROP, self.MODE_HIGHLIGHT, self.MODE_EXTRACT_TEXT):
+        if self.mode in (self.MODE_CROP, self.MODE_HIGHLIGHT, self.MODE_EXTRACT_TEXT, self.MODE_ERASE):
             self.start_point = pos
             rect = QRectF(self.start_point, self.start_point)
 
@@ -238,6 +247,14 @@ class ContinuousPDFCanvasScene(QGraphicsScene):
                 self.current_rect_item.setPen(pen)
                 self.current_rect_item.setBrush(brush)
                 self.addItem(self.current_rect_item)
+
+            elif self.mode == self.MODE_ERASE:
+                pen = QPen(QColor(211, 47, 47), 2, Qt.PenStyle.SolidLine)
+                brush = QBrush(QColor(239, 83, 80, 80))
+                self.current_rect_item = QGraphicsRectItem(rect)
+                self.current_rect_item.setPen(pen)
+                self.current_rect_item.setBrush(brush)
+                self.addItem(self.current_rect_item)
         else:
             super().mousePressEvent(event)
 
@@ -261,11 +278,12 @@ class ContinuousPDFCanvasScene(QGraphicsScene):
                 if self.mode == self.MODE_CROP:
                     self.crop_rect_item = self.current_rect_item
                     self.crop_rect = rect
+
                 elif self.mode == self.MODE_HIGHLIGHT:
                     self.highlight_items.append(self.current_rect_item)
                     self.highlight_rects.append(rect)
+
                 elif self.mode == self.MODE_EXTRACT_TEXT:
-                    # Feature 7: Extract text from selected rectangle across page(s)
                     extracted_parts = []
                     scale = 1.0 / self.zoom_factor
                     if self.doc_ref:
@@ -291,6 +309,33 @@ class ContinuousPDFCanvasScene(QGraphicsScene):
                     full_text = "\n".join(extracted_parts)
                     self.removeItem(self.current_rect_item)
                     self.text_extracted.emit(full_text)
+
+                elif self.mode == self.MODE_ERASE:
+                    # Feature 8: Permanently redact/erase selected area
+                    scale = 1.0 / self.zoom_factor
+                    if self.doc_ref:
+                        for page_idx, item, page_scene_rect in self.page_items:
+                            intersect = rect.intersected(page_scene_rect)
+                            if not intersect.isEmpty():
+                                local_rect = QRectF(
+                                    intersect.left() - page_scene_rect.left(),
+                                    intersect.top() - page_scene_rect.top(),
+                                    intersect.width(),
+                                    intersect.height()
+                                )
+                                pdf_rect = fitz.Rect(
+                                    local_rect.left() * scale,
+                                    local_rect.top() * scale,
+                                    local_rect.right() * scale,
+                                    local_rect.bottom() * scale
+                                )
+                                page = self.doc_ref[page_idx]
+                                page.add_redact_annot(pdf_rect, fill=(1, 1, 1))
+                                page.apply_redactions()
+
+                    self.removeItem(self.current_rect_item)
+                    self.request_render.emit()
+
             else:
                 self.removeItem(self.current_rect_item)
                 if self.mode == self.MODE_CROP:
@@ -331,6 +376,7 @@ class PDFEditorWindow(QMainWindow):
         self.scene = ContinuousPDFCanvasScene(self)
         self.scene.selection_changed.connect(self.update_status_bar)
         self.scene.text_extracted.connect(self.handle_extracted_text)
+        self.scene.request_render.connect(self.on_erased_re_render)
 
         self.view = PDFGraphicsView(self.scene, self)
         self.view.zoom_changed.connect(self.update_zoom_indicator)
@@ -374,7 +420,7 @@ class PDFEditorWindow(QMainWindow):
         # Tool Mode selection
         self.mode_label = QLabel(self)
         self.mode_combo = QComboBox()
-        self.mode_combo.addItems(["", "", "", ""])
+        self.mode_combo.addItems(["", "", "", "", ""])
         self.mode_combo.currentIndexChanged.connect(self.on_mode_changed)
         self.toolbar.addWidget(self.mode_label)
         self.toolbar.addWidget(self.mode_combo)
@@ -444,7 +490,8 @@ class PDFEditorWindow(QMainWindow):
             self.tr("mode_nav"),
             self.tr("mode_crop"),
             self.tr("mode_hl"),
-            self.tr("mode_extract")
+            self.tr("mode_extract"),
+            self.tr("mode_erase")
         ])
         self.mode_combo.setCurrentIndex(max(0, curr_idx))
         self.mode_combo.blockSignals(False)
@@ -483,6 +530,9 @@ class PDFEditorWindow(QMainWindow):
         elif index == ContinuousPDFCanvasScene.MODE_EXTRACT_TEXT:
             self.view.setDragMode(QGraphicsView.DragMode.NoDrag)
             self.statusBar.showMessage(self.tr("mode_extract_msg"))
+        elif index == ContinuousPDFCanvasScene.MODE_ERASE:
+            self.view.setDragMode(QGraphicsView.DragMode.NoDrag)
+            self.statusBar.showMessage(self.tr("mode_erase_msg"))
         else:
             self.view.setDragMode(QGraphicsView.DragMode.ScrollHandDrag)
             self.statusBar.showMessage(self.tr("mode_nav_msg"))
@@ -499,7 +549,6 @@ class PDFEditorWindow(QMainWindow):
             if scene_rect.contains(scene_center):
                 return page_idx
 
-        # Fallback to closest page if center point falls between margins
         min_dist = float('inf')
         closest_idx = 0
         for page_idx, item, scene_rect in self.scene.page_items:
@@ -551,6 +600,11 @@ class PDFEditorWindow(QMainWindow):
             self.statusBar.showMessage(self.tr("text_copied").format(len(text)), 4000)
         else:
             self.statusBar.showMessage(self.tr("text_no_found"), 4000)
+
+    def on_erased_re_render(self):
+        """Feature 8 Helper: Re-renders document after applying redaction and updates status bar."""
+        self.render_continuous_document()
+        self.statusBar.showMessage(self.tr("area_erased"), 4000)
 
     def open_file(self):
         file_path, _ = QFileDialog.getOpenFileName(
@@ -672,10 +726,9 @@ class PDFEditorWindow(QMainWindow):
             return
 
         try:
-            out_doc = fitz.open()
-
             # Cross-page crop region export logic
             if self.scene.crop_rect:
+                out_doc = fitz.open()
                 crop_rect = self.scene.crop_rect.normalized()
                 scale = 1.0 / self.zoom_factor
                 target_width_pts = crop_rect.width() * scale
@@ -723,8 +776,8 @@ class PDFEditorWindow(QMainWindow):
                         annot.update()
 
             else:
-                out_doc.close()
-                out_doc = fitz.open(self.file_path)
+                # Save modified self.doc directly to preserve in-memory page rotations, deletions, and redactions
+                out_doc = self.doc
                 scale = 1.0 / self.zoom_factor
 
                 for hl_rect in self.scene.highlight_rects:
@@ -748,7 +801,8 @@ class PDFEditorWindow(QMainWindow):
                             annot.update()
 
             out_doc.save(save_path, garbage=4, deflate=True)
-            out_doc.close()
+            if self.scene.crop_rect:
+                out_doc.close()
 
             QMessageBox.information(
                 self, self.tr("msg_save_ok_title"), self.tr("msg_save_ok_body").format(save_path)
